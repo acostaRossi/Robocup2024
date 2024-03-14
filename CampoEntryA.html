@@ -95,16 +95,24 @@
 			<div class="column">
 				<div class="square">
 			        <h2>Evacuation Zone</h2>
+			        <input type="radio" name="evacuation" value="7">
+			        <label>Viva + Viva + Morta</label><br>
+			        <input type="radio" name="evacuation" value="6">
+			        <label>Viva + Morta + Viva</label><br>
+			        <input type="radio" name="evacuation" value="5">
+			        <label>Morta + Viva + Viva</label><br>
+			        <input type="radio" name="evacuation" value="4">
+			        <label>Morta + Viva</label><br>
 			        <input type="radio" name="evacuation" value="3">
-			        <label>2 Vive 1 Morta</label><br>
+			        <label>Viva + Morta</label><br>
 			        <input type="radio" name="evacuation" value="2">
-			        <label>2 Vive</label><br>
+			        <label>Viva</label><br>
 			        <input type="radio" name="evacuation" value="1">
-			        <label>1 Viva</label><br>
-			        <input type="radio" name="evacuation" value="0" checked="true">
+			        <label>Morta</label><br>
+			        <input type="radio" name="evacuation" value="0" checked>
 			        <label>Nessuna</label><br>
-			        <input type="number" id="lopevacuation" min="0" max="20" disabled="true" value="0">
-			        <input type="checkbox" onclick="toggleInputNumber(this)">Completato
+			        Lack of Progress
+			        <input type="number" id="evacuationLOP"  min="0" max="20" disabled="true" value="0">
 			    </div>
 			</div>
 			<div class="column">
@@ -121,9 +129,8 @@
 		(e) => {
 			e.preventDefault();
 			let linea = calcoloPuntiLinea();
-			let exit = calcolaExitBonus();
 			let molt = moltiplicatori();
-			let totale = (linea + exit) * molt;
+			let totale = linea * molt;
 			$("#pResult").text(totale);
 		});
 
@@ -154,46 +161,54 @@
 			return somma;
 		}
 
-		function calcolaExitBonus() {
+		function moltiplicatori() {			
+			let res = parseInt($('input[name="evacuation"]:checked').val())
 
-			if(!$("#exitbonus").prop("checked")) {
-				return 0;
+			let mult = 1;
+			// nessuna
+			if(res == 0) {
+				mult = 1.25;
 			}
-			let somma = 0;
-			$(".checkpoint").each(function(index) {
-				if(!$( this ).prop("disabled")) {
-					let value = parseInt($(this).prop("value"));
-					somma += value;
-				}
-			});
-			if(!$("#lopevacuation").prop("disabled")) {
-				let valLopEvacuation = parseInt($("#lopevacuation").prop("value"));
-				somma += valLopEvacuation;
+			// Morta
+			else if(res == 1) {
+				mult = 1.25;
 			}
-			let exitB = 60 - (somma * 5);
-			if(exitB < 0)
-				exitB = 0;
-
-			return exitB;
-		}
-
-		function moltiplicatori() {
-			let molt = 0;
-			let puntiPerPallina = 0;
-
-			if(!$("#lopevacuation").prop("disabled")) {
-				let valLopEvacuation = parseInt($("#lopevacuation").prop("value"));
-				puntiPerPallina = 1.4 + (-0.05 * valLopEvacuation);
-				puntiPerPallina = Math.round((puntiPerPallina + Number.EPSILON) * 100) / 100
+			// viva
+			else if(res == 2) {
+				mult = 1.4;
 			}
-			let potenza = parseInt($('input[name="evacuation"]:checked').val())
-			molt = Math.pow(puntiPerPallina, potenza);
-			molt = Math.round((molt) * 1000000) / 1000000;
-			if(molt < 1.25 && molt !== 1) {
-				molt = 1.25;
+			// Viva + Morta
+			else if(res == 3) {
+				mult = 1.4 * 1.4;
+			}
+			// Morta + Viva
+			else if(res == 4) {
+				mult = 1.4 * 1.4;
+			}
+			// Morta + Viva + Viva
+			else if(res == 5) {
+				mult = 1.4 * 1.4 * 1.4;
+			}
+			// Viva + Morta + Viva
+			else if(res == 6) {
+				mult = 1.4 * 1.4 * 1.4;
+			}
+			// Viva + Viva + Morta
+			else if(res == 7) {
+				mult = 1.4 * 1.4 * 1.4;
 			}
 
-			return molt;
+			let penality = parseInt($("#evacuationLOP").val());
+
+			penality = penality * 0.05;
+
+			mult = mult - penality;
+
+			if(mult < 1.25) {
+				mult = 1.25;
+			}
+
+			return mult;
 		}
 
 	    function toggleInputNumber(el) {
