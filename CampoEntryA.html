@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Document</title>
+    <style>
+        .square {
+            background-color: lightblue;
+            padding: 4px;
+            width: 200px;
+        }
+        .column {
+        	display: inline-block;
+        }
+        .grid {
+        	display: grid;
+        	grid-template-columns: repeat(6, 270px);
+        }
+        #calcola {
+        	width: 100px;
+		    height: 100px;
+		    margin-top: 30px;
+		    background: darkseagreen;
+		    font-size: 30px;
+        }
+        .orange {
+        	background: orange; 
+        }
+        .checkpoint {
+        	border: 2px solid orange; 
+        }
+        #pResult {
+        	font-size: 20px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+</head>
+<body>
+	<form method="post" id="formMain">
+		<div class="grid">
+			<div class="column">
+				<!--
+					Tratteggio 10
+					Bumpers 10
+					Verde 10
+					Rampa 10
+					Altalena 20
+					Ostacolo 20
+				-->
+			    <label for="start">Start</label>
+			    <input type="checkbox" id="start" value="5" class="tilePunti">
+			    <br/>
+			    <label>4</label>
+			    <input type="checkbox" value="10" class="tilePunti incrocio">
+			    <br>
+			    <label>8</label>
+			    <input type="checkbox" value="10" class="tilePunti bumper">
+			    <br>
+				<label>11</label>
+			    <input type="checkbox" value="10" class="tilePunti tratteggio"/>
+			    <br/>
+			    <label>12</label>
+			    <input type="checkbox" value="10" class="tilePunti incrocio">
+			    <br>
+			    <label">13</label>
+			    <input type="number" class="checkpoint" tile="13" name="checkpoint12" min="0" max="20" disabled="true" value="0">
+			    <input type="checkbox" id="available-1" onclick="toggleInputNumber(this)">Completato
+			</div>
+			<div class="column">
+				<label>15</label>
+			    <input type="checkbox" value="10" class="tilePunti bumper"/>
+			    <br/>
+			    <label>18</label>
+			    <input type="checkbox" value="10" class="tilePunti ostacolo"/>
+			    <br/>
+			    <label>22</label>
+			    <input type="checkbox" value="10" class="tilePunti tratteggio"/>
+			    <br/>
+			    <label>26</label>
+			    <input type="checkbox" value="10" class="tilePunti altalena"/>
+			    <br/>
+			    <label>29</label>
+			    <input type="checkbox" value="10" class="tilePunti tratteggio"/>
+			    <br/>
+			    <label>31</label>
+			    <input type="checkbox" value="10" class="tilePunti bumper"/>
+			    <br/>
+			    <label>33</label>
+			    <input type="number" class="checkpoint" tile="19" name="checkpoint10" min="0" max="20" disabled="true" value="0">
+			    <input type="checkbox" onclick="toggleInputNumber(this)">Completato
+			    <br/>
+			</div>
+			<div class="column">
+				<div class="square">
+			        <h2>Evacuation Zone</h2>
+			        <input type="radio" name="evacuation" value="3">
+			        <label>2 Vive 1 Morta</label><br>
+			        <input type="radio" name="evacuation" value="2">
+			        <label>2 Vive</label><br>
+			        <input type="radio" name="evacuation" value="1">
+			        <label>1 Viva</label><br>
+			        <input type="radio" name="evacuation" value="0" checked="true">
+			        <label>Nessuna</label><br>
+			        <input type="number" id="lopevacuation" min="0" max="20" disabled="true" value="0">
+			        <input type="checkbox" onclick="toggleInputNumber(this)">Completato
+			    </div>
+			</div>
+			<div class="column">
+			    <input type="submit" value="Invia" id="calcola"/>
+			    <p>Punti totali:<span id="pResult"></span></p>
+			</div>
+		    
+		</div>
+	</form>
+	<img src="pistaEntryA.JPG" style="width:1000px; margin-top:50px;">
+
+	<script>
+		document.getElementById("formMain").addEventListener("submit",
+		(e) => {
+			e.preventDefault();
+			let linea = calcoloPuntiLinea();
+			let exit = calcolaExitBonus();
+			let molt = moltiplicatori();
+			let totale = (linea + exit) * molt;
+			$("#pResult").text(totale);
+		});
+
+		function calcoloPuntiLinea() {
+
+			let somma = 0;
+			$(".tilePunti").each(function(index) {
+				if($( this ).prop("checked")) {
+					let val = parseInt($(this).prop("value"));
+					somma += val;
+				}
+			});
+			$(".checkpoint").each(function(index) {
+				if(!$( this ).prop("disabled")) {
+					let tile = parseInt($(this).attr("tile"));
+					let value = parseInt($(this).prop("value"));
+					value++;
+					if (value === 1){
+						somma += 5 * tile;
+					} else if (value === 2){
+						somma += 3 * tile;
+					} else if (value === 3){
+						somma +=  tile;
+					}
+				}
+			});
+
+			return somma;
+		}
+
+		function calcolaExitBonus() {
+
+			if(!$("#exitbonus").prop("checked")) {
+				return 0;
+			}
+			let somma = 0;
+			$(".checkpoint").each(function(index) {
+				if(!$( this ).prop("disabled")) {
+					let value = parseInt($(this).prop("value"));
+					somma += value;
+				}
+			});
+			if(!$("#lopevacuation").prop("disabled")) {
+				let valLopEvacuation = parseInt($("#lopevacuation").prop("value"));
+				somma += valLopEvacuation;
+			}
+			let exitB = 60 - (somma * 5);
+			if(exitB < 0)
+				exitB = 0;
+
+			return exitB;
+		}
+
+		function moltiplicatori() {
+			let molt = 0;
+			let puntiPerPallina = 0;
+
+			if(!$("#lopevacuation").prop("disabled")) {
+				let valLopEvacuation = parseInt($("#lopevacuation").prop("value"));
+				puntiPerPallina = 1.4 + (-0.05 * valLopEvacuation);
+				puntiPerPallina = Math.round((puntiPerPallina + Number.EPSILON) * 100) / 100
+			}
+			let potenza = parseInt($('input[name="evacuation"]:checked').val())
+			molt = Math.pow(puntiPerPallina, potenza);
+			molt = Math.round((molt) * 1000000) / 1000000;
+			if(molt < 1.25 && molt !== 1) {
+				molt = 1.25;
+			}
+
+			return molt;
+		}
+
+	    function toggleInputNumber(el) {
+	    	$(el).prev().prop('disabled', !$(el).prop("checked"));
+
+	    	$(el).prev().toggleClass('orange', $(el).prop("checked"));
+	    }
+
+	    (() => {
+	    	let arr = ["verde",
+	    	"bumper",
+	    	"ostacolo",
+	    	"altalena",
+	    	"rampa",
+	    	"tratteggio",
+	    	"incrocio"];
+	    	arr.forEach((className) => {
+	    		$("." + className).each(function(index) {
+	    			$(this).after(className + " (" + $(this).val() + ")");
+	    		});
+	    	});
+	    })();
+	</script>
+
+</body>
+</html>
